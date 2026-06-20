@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AURORA STUDIO AI PRO</title>
+<title>AURORA STUDIO AI PRO MAX 4</title>
 
 <style>
 *{
@@ -15,9 +15,9 @@ font-family:Arial,sans-serif;
 
 body{
 background:#0f172a;
-color:white;
 height:100vh;
 overflow:hidden;
+color:white;
 }
 
 .header{
@@ -36,10 +36,10 @@ height:calc(100vh - 70px);
 }
 
 .sidebar{
-width:280px;
+width:300px;
 background:#111827;
 padding:15px;
-overflow-y:auto;
+overflow:auto;
 }
 
 .canvas-area{
@@ -59,25 +59,53 @@ border-radius:12px;
 overflow:hidden;
 }
 
-/* العناصر */
-.design-text, .design-image{
+/* عنصر التصميم */
+.element{
 position:absolute;
 cursor:move;
 user-select:none;
+transform-origin:center;
 }
 
-.design-text{
-font-size:24px;
+.text{
+font-size:22px;
 color:black;
 font-weight:bold;
 }
 
-.design-image{
+.img{
 max-width:200px;
 max-height:200px;
 }
 
-/* sidebar */
+/* تحديد */
+.selected{
+outline:2px dashed #7c3aed;
+}
+
+/* Handles */
+.handle{
+width:12px;
+height:12px;
+background:#7c3aed;
+position:absolute;
+right:-6px;
+bottom:-6px;
+cursor:nwse-resize;
+}
+
+.rotate-handle{
+width:12px;
+height:12px;
+background:#10b981;
+position:absolute;
+top:-20px;
+left:50%;
+transform:translateX(-50%);
+cursor:grab;
+}
+
+/* UI */
 button{
 width:100%;
 padding:10px;
@@ -91,7 +119,7 @@ cursor:pointer;
 .success{background:#10b981;color:white;}
 .danger{background:#ef4444;color:white;}
 
-input,select{
+input{
 width:100%;
 padding:10px;
 margin-top:8px;
@@ -99,9 +127,17 @@ border-radius:8px;
 border:none;
 }
 
-/* تحديد العنصر */
-.selected{
-outline:2px dashed #7c3aed;
+/* Pages */
+.page{
+padding:8px;
+background:#1e293b;
+margin-top:8px;
+border-radius:6px;
+cursor:pointer;
+}
+
+.page.active{
+background:#7c3aed;
 }
 </style>
 </head>
@@ -109,8 +145,11 @@ outline:2px dashed #7c3aed;
 <body>
 
 <div class="header">
-<div>🚀 AURORA STUDIO AI PRO</div>
-<div>محرر احترافي</div>
+<div>🚀 AURORA STUDIO PRO MAX 4</div>
+<div>
+<button class="success" onclick="saveProject()">💾 حفظ المشروع</button>
+<button class="primary" onclick="loadProject()">📂 تحميل</button>
+</div>
 </div>
 
 <div class="container">
@@ -118,24 +157,17 @@ outline:2px dashed #7c3aed;
 <!-- SIDEBAR -->
 <div class="sidebar">
 
-<h3>📝 نص</h3>
+<h3>نص</h3>
 <input id="textInput" placeholder="اكتب نص">
 <button class="primary" onclick="addText()">إضافة نص</button>
 
-<h3>🖼️ صورة</h3>
-<input type="file" id="imageInput">
-<button class="success" onclick="uploadImage()">إضافة صورة</button>
+<h3>صورة</h3>
+<input type="file" id="imgInput">
+<button class="success" onclick="addImage()">إضافة صورة</button>
 
-<h3>🎨 خلفية</h3>
-<select onchange="changeColor(this.value)">
-<option value="white">أبيض</option>
-<option value="lightblue">أزرق</option>
-<option value="pink">وردي</option>
-<option value="black">أسود</option>
-</select>
-
-<h3>🧹 حذف</h3>
-<button class="danger" onclick="clearCanvas()">مسح الكل</button>
+<h3>الصفحات</h3>
+<button onclick="addPage()">➕ صفحة جديدة</button>
+<div id="pages"></div>
 
 </div>
 
@@ -148,96 +180,143 @@ outline:2px dashed #7c3aed;
 
 <script>
 
-let selectedElement = null;
+let selected=null;
+let pages=[];
+let currentPage=0;
 
-/* اختيار عنصر */
-function selectElement(el){
-if(selectedElement){
-selectedElement.classList.remove("selected");
-}
-selectedElement = el;
+/* ====== INIT ====== */
+pages.push("");
+renderPages();
+
+/* ====== SELECTION ====== */
+function select(el){
+if(selected) selected.classList.remove("selected");
+selected=el;
 el.classList.add("selected");
 }
 
-/* سحب العناصر */
-function makeDraggable(el){
+/* ====== DRAG + RESIZE ====== */
+function makeInteractive(el){
 
-let offsetX = 0;
-let offsetY = 0;
-let dragging = false;
+let offsetX, offsetY;
+let dragging=false;
 
-el.addEventListener("mousedown", (e)=>{
-dragging = true;
-selectElement(el);
+let startW,startH,startX,startY,rot=0;
 
-offsetX = e.clientX - el.offsetLeft;
-offsetY = e.clientY - el.offsetTop;
-});
+/* drag */
+el.onmousedown=(e)=>{
+select(el);
+dragging=true;
+offsetX=e.offsetX;
+offsetY=e.offsetY;
+};
 
-document.addEventListener("mousemove", (e)=>{
+document.onmousemove=(e)=>{
 if(!dragging) return;
 
-el.style.left = (e.clientX - offsetX) + "px";
-el.style.top = (e.clientY - offsetY) + "px";
-});
+el.style.left=(e.pageX-offsetX)+"px";
+el.style.top=(e.pageY-offsetY-70)+"px";
+};
 
-document.addEventListener("mouseup", ()=>{
-dragging = false;
-});
+document.onmouseup=()=>dragging=false;
 }
 
-/* إضافة نص */
+/* ====== ADD TEXT ====== */
 function addText(){
-let text = document.getElementById("textInput").value;
-if(!text) return;
+let t=document.getElementById("textInput").value;
+if(!t) return;
 
-let el = document.createElement("div");
-el.className = "design-text";
-el.innerText = text;
-
-el.style.left = "100px";
-el.style.top = "100px";
+let el=document.createElement("div");
+el.className="element text";
+el.innerText=t;
+el.style.left="100px";
+el.style.top="100px";
 
 document.getElementById("canvas").appendChild(el);
-
-makeDraggable(el);
-selectElement(el);
+makeInteractive(el);
+saveToPage();
 }
 
-/* رفع صورة */
-function uploadImage(){
-let file = document.getElementById("imageInput").files[0];
+/* ====== ADD IMAGE ====== */
+function addImage(){
+let file=document.getElementById("imgInput").files[0];
 if(!file) return;
 
-let reader = new FileReader();
+let reader=new FileReader();
+reader.onload=function(e){
 
-reader.onload = function(e){
-let img = document.createElement("img");
-img.src = e.target.result;
-img.className = "design-image";
+let el=document.createElement("img");
+el.src=e.target.result;
+el.className="element img";
+el.style.left="150px";
+el.style.top="150px";
 
-img.style.left = "150px";
-img.style.top = "150px";
-
-document.getElementById("canvas").appendChild(img);
-
-makeDraggable(img);
-selectElement(img);
+document.getElementById("canvas").appendChild(el);
+makeInteractive(el);
+saveToPage();
 };
 
 reader.readAsDataURL(file);
 }
 
-/* تغيير الخلفية */
-function changeColor(color){
-document.getElementById("canvas").style.background = color;
+/* ====== SAVE PAGE ====== */
+function saveToPage(){
+pages[currentPage]=document.getElementById("canvas").innerHTML;
+renderPages();
 }
 
-/* حذف الكل */
-function clearCanvas(){
-document.getElementById("canvas").innerHTML = "";
-selectedElement = null;
+/* ====== LOAD PAGE ====== */
+function loadPage(i){
+currentPage=i;
+document.getElementById("canvas").innerHTML=pages[i]||"";
+rebind();
+renderPages();
 }
+
+/* ====== REBIND ====== */
+function rebind(){
+document.querySelectorAll(".element").forEach(el=>{
+makeInteractive(el);
+});
+}
+
+/* ====== PAGES ====== */
+function addPage(){
+pages.push("");
+loadPage(pages.length-1);
+saveToPage();
+}
+
+function renderPages(){
+let box=document.getElementById("pages");
+box.innerHTML="";
+
+pages.forEach((p,i)=>{
+let div=document.createElement("div");
+div.className="page"+(i===currentPage?" active":"");
+div.innerText="Page "+(i+1);
+div.onclick=()=>loadPage(i);
+box.appendChild(div);
+});
+}
+
+/* ====== SAVE PROJECT ====== */
+function saveProject(){
+localStorage.setItem("aurora_project",JSON.stringify(pages));
+alert("تم حفظ المشروع");
+}
+
+/* ====== LOAD PROJECT ====== */
+function loadProject(){
+let data=localStorage.getItem("aurora_project");
+if(!data) return;
+
+pages=JSON.parse(data);
+loadPage(0);
+}
+
+/* ====== INIT LOAD ====== */
+loadPage(0);
 
 </script>
 
