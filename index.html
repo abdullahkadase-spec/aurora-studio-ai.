@@ -3,73 +3,288 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>AURORA STUDIO AI</title>
 
-<link rel="stylesheet" href="style.css">
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+background:#0f172a;
+color:white;
+height:100vh;
+overflow:hidden;
+}
+
+.header{
+height:70px;
+background:#111827;
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:0 20px;
+border-bottom:1px solid #334155;
+}
+
+.logo{
+font-size:22px;
+font-weight:bold;
+}
+
+.container{
+display:flex;
+height:calc(100vh - 70px);
+}
+
+.sidebar{
+width:280px;
+background:#111827;
+padding:15px;
+overflow-y:auto;
+}
+
+.sidebar h3{
+margin-bottom:10px;
+margin-top:15px;
+}
+
+.tool{
+background:#1e293b;
+padding:12px;
+margin-bottom:10px;
+border-radius:10px;
+cursor:pointer;
+}
+
+.tool:hover{
+background:#334155;
+}
+
+.canvas-area{
+flex:1;
+display:flex;
+justify-content:center;
+align-items:center;
+background:#1e293b;
+}
+
+.canvas{
+width:900px;
+height:550px;
+background:white;
+position:relative;
+overflow:hidden;
+border-radius:12px;
+}
+
+.design-text{
+position:absolute;
+top:50px;
+right:50px;
+font-size:30px;
+font-weight:bold;
+color:black;
+cursor:move;
+}
+
+.uploaded-image{
+position:absolute;
+max-width:250px;
+max-height:250px;
+top:150px;
+right:100px;
+}
+
+button{
+width:100%;
+padding:10px;
+margin-top:8px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+}
+
+.primary{
+background:#7c3aed;
+color:white;
+}
+
+.success{
+background:#10b981;
+color:white;
+}
+
+.danger{
+background:#ef4444;
+color:white;
+}
+
+input{
+width:100%;
+padding:10px;
+margin-top:8px;
+border-radius:8px;
+border:none;
+}
+
+select{
+width:100%;
+padding:10px;
+margin-top:8px;
+border-radius:8px;
+}
+
+</style>
+
 </head>
 
 <body>
 
-<header>
-    <h1>AURORA STUDIO AI</h1>
+<div class="header">
 
-    <nav>
-        <a href="#">الرئيسية</a>
-        <a href="#">التصميم</a>
-        <a href="#">الذكاء الاصطناعي</a>
-        <a href="#">القوالب</a>
-        <a href="#">الأسعار</a>
-        <a href="pages/login.html">دخول</a>
-    </nav>
-</header>
-
-<section class="hero">
-    <h2>أنشئ صوراً وفيديوهات بالذكاء الاصطناعي</h2>
-    <p>منصة تصميم احترافية شبيهة Canva</p>
-
-    <button>ابدأ الآن</button>
-</section>
-
-<section class="tools">
-
-<h2>أدوات الذكاء الاصطناعي</h2>
-
-<div class="card">🎨 توليد الصور</div>
-<div class="card">🧑‍🎨 تحويل إلى أنمي</div>
-<div class="card">🧽 إزالة الخلفية</div>
-<div class="card">✨ تحسين الجودة</div>
-<div class="card">🖋️ تصميم الشعارات</div>
-<div class="card">🎥 توليد الفيديو</div>
-<div class="card">📢 إنشاء الإعلانات</div>
-
-</section>
-
-<section class="plans">
-
-<h2>الباقات</h2>
-
-<div class="card">
-<h3>FREE</h3>
-<p>أدوات مجانية</p>
+<div class="logo">
+🚀 AURORA STUDIO AI
 </div>
 
-<div class="card">
-<h3>PRO</h3>
-<p>أدوات احترافية</p>
+<div>
+محرر التصميم
 </div>
 
-<div class="card">
-<h3>VIP</h3>
-<p>جميع الأدوات</p>
 </div>
 
-</section>
+<div class="container">
 
-<footer>
-<p>© AURORA STUDIO AI</p>
-</footer>
+<div class="sidebar">
 
-<script src="app.js"></script>
+<h3>📝 إضافة نص</h3>
+
+<input id="textInput" placeholder="اكتب النص">
+
+<button class="primary" onclick="addText()">
+إضافة النص
+</button>
+
+<h3>🖼️ رفع صورة</h3>
+
+<input type="file" id="imageInput">
+
+<button class="success" onclick="uploadImage()">
+إضافة الصورة
+</button>
+
+<h3>🎨 لون الخلفية</h3>
+
+<select onchange="changeColor(this.value)">
+<option value="white">أبيض</option>
+<option value="lightblue">أزرق فاتح</option>
+<option value="lightgreen">أخضر فاتح</option>
+<option value="pink">وردي</option>
+<option value="black">أسود</option>
+</select>
+
+<h3>🧹 تنظيف التصميم</h3>
+
+<button class="danger" onclick="clearCanvas()">
+حذف جميع العناصر
+</button>
+
+<h3>🤖 أدوات الذكاء الاصطناعي</h3>
+
+<div class="tool">🎨 توليد صورة AI</div>
+<div class="tool">🧽 إزالة الخلفية</div>
+<div class="tool">✨ تحسين الجودة</div>
+<div class="tool">🖋️ تصميم شعار</div>
+<div class="tool">🎥 إنشاء فيديو AI</div>
+
+<h3>📱 القوالب</h3>
+
+<div class="tool">Instagram</div>
+<div class="tool">Facebook</div>
+<div class="tool">TikTok</div>
+<div class="tool">YouTube</div>
+
+</div>
+
+<div class="canvas-area">
+
+<div class="canvas" id="canvas">
+
+<div class="design-text">
+ابدأ تصميمك هنا
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+function addText(){
+
+let text=document.getElementById("textInput").value;
+
+if(text==="") return;
+
+let element=document.createElement("div");
+
+element.className="design-text";
+
+element.innerText=text;
+
+element.style.top=Math.random()*300+"px";
+element.style.right=Math.random()*400+"px";
+
+document.getElementById("canvas").appendChild(element);
+
+}
+
+function uploadImage(){
+
+let file=document.getElementById("imageInput").files[0];
+
+if(!file) return;
+
+let reader=new FileReader();
+
+reader.onload=function(e){
+
+let img=document.createElement("img");
+
+img.src=e.target.result;
+
+img.className="uploaded-image";
+
+document.getElementById("canvas").appendChild(img);
+
+};
+
+reader.readAsDataURL(file);
+
+}
+
+function changeColor(color){
+
+document.getElementById("canvas").style.background=color;
+
+}
+
+function clearCanvas(){
+
+let canvas=document.getElementById("canvas");
+
+canvas.innerHTML="";
+
+}
+
+</script>
 
 </body>
 </html>
